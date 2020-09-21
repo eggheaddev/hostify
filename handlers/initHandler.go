@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hostify/io"
 	"os"
+	"runtime"
 )
 
 // InitialPackage create a initial hostify file
@@ -11,8 +12,20 @@ func InitialPackage() {
 
 	var path string
 
+	_os := runtime.GOOS
 
-	_, errExist := os.Stat(Cwd() + "\\hostify.json")
+	switch _os {
+	case "windows":
+		path = "\\hostify.json"
+	case "darwin":
+		path = "/hostify.json"
+	case "linux":
+		path = "/hostify.json"
+	default:
+		path = "/hostify.json"
+	}
+
+	_, errExist := os.Stat(Cwd() + path)
 
 	// * verified if hostify file exist
 	if !os.IsNotExist(errExist) {
@@ -37,7 +50,7 @@ func InitialPackage() {
 
 		if err == nil {
 			file.Close()
-			done := fmt.Sprintf("Done: %v bites writes", bitesWriter)
+			done := fmt.Sprintf("%v bites writes", bitesWriter)
 			io.SuccessMessage(done)
 			os.Exit(0)
 		} else {
