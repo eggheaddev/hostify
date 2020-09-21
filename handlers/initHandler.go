@@ -39,14 +39,7 @@ func InitialPackage() {
 			io.ErrorMessage("creating hostify.json file")
 		}
 
-		bitesWriter, err := file.WriteString(`{
-	"name": "Name here....",
-	"description": "Name here",
-	"version": "1.0.0",
-	"entry": "...",
-	"repository": "https://github.com/{ owner }/{ repo name }",
-	"files": ["...", "...", "..."]
-}`)
+		bitesWriter, err := file.WriteString(ManageTemplate())
 
 		if err == nil {
 			file.Close()
