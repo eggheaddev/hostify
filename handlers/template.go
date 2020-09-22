@@ -10,9 +10,10 @@ import (
 func ManageTemplate() string {
 	scanner := bufio.NewScanner(os.Stdin)
 	input := []string{}
-	config := []string{"Package name: ", "description: ", "version: ", "entry file: ", "repository: ", "files: "}
+	config := []string{"Package name: ",
+		"description: ", "version: ", "entry file: ", "repository: ", "files: "}
 
-	fmt.Println(len(config))
+	// * get initial config
 	for i := 0; i <= len(config)-1; i++ {
 		fmt.Printf(config[i])
 		scanner.Scan()
