@@ -1,8 +1,11 @@
 package cmd
 
 import (
-	// "fmt"
+	"hostify/connection"
+
+	"fmt"
 	"hostify/handlers"
+	"hostify/io"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +16,14 @@ var linkCmd = &cobra.Command{
 	Short: "Link your user key to connect the backend",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		handlers.LinkKeyHandler()
+
+		if connection.ExistToken() {
+			io.ErrorMessage(
+				fmt.Sprintf("hostify.key is ready exist in Path:\n%v", handlers.TokenPath()))
+		} else {
+			handlers.LinkKeyHandler()
+			connection.ValidateToken()
+		}
 	},
 }
 
