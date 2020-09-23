@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"hostify/io"
+	"log"
 	"os"
 )
 
@@ -35,6 +36,7 @@ func InitialPackage() {
 
 		if errorCreate != nil {
 			io.ErrorMessage("creating hostify.json file")
+			log.Fatal(errorCreate)
 		}
 
 		bitesWrites, errorWrite := file.WriteString(ManageTemplate())
@@ -46,7 +48,7 @@ func InitialPackage() {
 			os.Exit(0)
 		} else {
 			fmt.Println(errorWrite)
-			os.Exit(1)
+			log.Fatal(errorCreate)
 		}
 	}
 }
