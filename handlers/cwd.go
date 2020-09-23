@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"log"
 	"os"
 )
 
@@ -10,7 +10,7 @@ func Cwd() string {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	return cwd
