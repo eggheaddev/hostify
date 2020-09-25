@@ -4,16 +4,34 @@ import (
 	"fmt"
 )
 
-const reset = "\u001b[0m"
-const red = "\u001b[31m"
-const green = "\u001b[32m"
+// Reset red ANSI color
+const Reset = "\u001b[0m"
+
+// Red ANSI color
+const Red = "\u001b[31m"
+
+// Green ANSI color
+const Green = "\u001b[32m"
+
+// Yellow ANSI color
+const Yellow = "\u001b[33m"
+
+var bug = Yellow + "\nlooks like a bug? if you think this, please send us your report:" + Reset + Green + "\n==> https://github.com/eggheaddev/hostify-cli/issues\n" + Reset
+
+// Trace default message
+var Trace = bug + Red + "\n ==== Error trace ==== \n" + Reset
 
 // ErrorMessage print error message
 func ErrorMessage(text string) {
-	fmt.Println(red + "Error: " + reset + text)
+	fmt.Println(Red + "Error: " + Reset + text)
 }
 
 // SuccessMessage print success message
 func SuccessMessage(text string) {
-	fmt.Println(green + "Done: " + reset + text)
+	fmt.Println(Green + "Done: " + Reset + text)
+}
+
+// WarningMessage print warning message
+func WarningMessage(text string) {
+	fmt.Println(Yellow + "Warning: " + Reset + text)
 }

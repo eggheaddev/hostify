@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 	"hostify/io"
+	"log"
 	"os"
-	"runtime"
 )
 
 // InitialPackage create a initial hostify file
@@ -12,15 +12,14 @@ func InitialPackage() {
 
 	var path string
 
-	_os := runtime.GOOS
+	// * get os type
+	osType := os.Getenv("OS")
 
-	switch _os {
-	case "windows":
+	switch osType {
+	case "Windows_NT":
 		path = "\\hostify.json"
-	case "darwin":
-		path = "/hostify.json"
-	case "linux":
-		path = "/hostify.json"
+
+	// * default path for unix-based os
 	default:
 		path = "/hostify.json"
 	}
@@ -33,29 +32,23 @@ func InitialPackage() {
 		os.Exit(1)
 	} else {
 
-		file, err := os.Create("hostify.json")
+		file, errorCreate := os.Create("hostify.json")
 
-		if err != nil {
-			io.ErrorMessage("creating hostify.json file")
+		if errorCreate != nil {
+			io.ErrorMessage("creating hostify.json file\n" + io.Trace)
+			log.Fatal(errorCreate)
 		}
 
-		bitesWriter, err := file.WriteString(`{
-	"name": "Name here....",
-	"description": "Name here",
-	"version": "1.0.0",
-	"entry": "...",
-	"repository": "https://github.com/{ owner }/{ repo name }",
-	"files": ["...", "...", "..."]
-}`)
+		bitesWrites, errorWrite := file.WriteString(ManageTemplate())
 
-		if err == nil {
+		if errorWrite == nil {
 			file.Close()
-			done := fmt.Sprintf("%v bites writes", bitesWriter)
+			done := fmt.Sprintf("%v bites writes", bitesWrites)
 			io.SuccessMessage(done)
 			os.Exit(0)
 		} else {
-			fmt.Println(err)
-			os.Exit(1)
+			fmt.Println(errorWrite)
+			log.Fatal(errorCreate)
 		}
 	}
 }
