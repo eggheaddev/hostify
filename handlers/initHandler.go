@@ -35,7 +35,7 @@ func InitialPackage() {
 		file, errorCreate := os.Create("hostify.json")
 
 		if errorCreate != nil {
-			io.ErrorMessage("creating hostify.json file")
+			io.ErrorMessage("creating hostify.json file\n" + io.Trace)
 			log.Fatal(errorCreate)
 		}
 
