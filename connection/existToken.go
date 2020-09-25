@@ -2,8 +2,8 @@ package connection
 
 import (
 	"encoding/json"
-	"fmt"
 	"hostify/handlers"
+	"hostify/io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -27,12 +27,14 @@ func ExistToken() bool {
 // ValidateToken token request
 func ValidateToken() {
 	client := &http.Client{
-		Timeout: time.Duration(5 * time.Second),
+		// * 1 minute time out
+		Timeout: time.Duration(60 * time.Second),
 	}
 
 	request, errorReq := http.NewRequest("GET", "https://api-hostify-service.herokuapp.com/api/validate", nil)
 
 	if errorReq != nil {
+		io.ErrorMessage("creating server request\n" + io.Trace)
 		log.Fatal(errorReq)
 	}
 
@@ -40,6 +42,7 @@ func ValidateToken() {
 	resp, errorGet := client.Do(request)
 
 	if errorGet != nil {
+		io.ErrorMessage("making request for validate user token\n" + io.Trace)
 		log.Fatal(errorGet)
 	}
 
@@ -47,6 +50,7 @@ func ValidateToken() {
 	defer resp.Body.Close()
 
 	if errorBody != nil {
+		io.ErrorMessage("geting the server response\n" + io.Trace)
 		log.Fatal(errorBody)
 	}
 
@@ -54,6 +58,10 @@ func ValidateToken() {
 
 	json.Unmarshal(body, &bodyJSON)
 
-	fmt.Println("body => ", string(body))
-	fmt.Println("json => ", bodyJSON)
+	if bodyJSON["error"] == true {
+		io.ErrorMessage("rejected request")
+		log.Fatal(bodyJSON["message"])
+	} else {
+		io.SuccessMessage("the token was verified successfully")
+	}
 }
