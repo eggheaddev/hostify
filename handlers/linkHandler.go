@@ -29,14 +29,15 @@ func LinkKeyHandler() {
 	hostifyPath := TokenPath()
 
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("%v \n enter your token key: ", io.Green+welcome+io.Reset)
+	fmt.Printf("%v \n%venter your token key: %v",
+		io.Green+welcome+io.Reset, io.Yellow, io.Reset)
 	scanner.Scan()
 	input := scanner.Text()
 
 	createFile, createError := os.Create(hostifyPath)
 
 	if createError != nil {
-		io.ErrorMessage("creating hostify.key file")
+		io.ErrorMessage("creating hostify.key file\n" + io.Trace)
 		log.Fatal(createError)
 	}
 
@@ -45,9 +46,10 @@ func LinkKeyHandler() {
 	if errorWrite == nil {
 		// * show done message
 		createFile.Close()
-		done := fmt.Sprintf("%v bytes written", bitesWriter)
+		done := fmt.Sprintf("%v bytes written\n", bitesWriter)
 		io.SuccessMessage(done)
 	} else {
+		io.ErrorMessage("writing token in hostify.key file\n" + io.Trace)
 		log.Fatal(errorWrite)
 	}
 }
