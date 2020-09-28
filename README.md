@@ -21,6 +21,7 @@ curl -fsSL denopkg.com/eggheaddev/hostify-cli/install/install.sh |  sh
 iwr denopkg.com/eggheaddev/hostify-cli/install/install.ps1 -useb | iex
 ```
 
+
 **For people who have Golang**
 ```
 clone the repo and make a `go install` and add the go bin path to your enviroment variables
@@ -28,3 +29,4 @@ clone the repo and make a `go install` and add the go bin path to your enviromen
 
 
 Write in your term hostify help to verify the installation of the cli
+
