@@ -2,6 +2,7 @@ package connection
 
 import (
 	"encoding/json"
+	"fmt"
 	"hostify/handlers"
 	"hostify/io"
 	"io/ioutil"
@@ -15,30 +16,32 @@ import (
 func ExistToken() bool {
 
 	hostifyFilePath := handlers.TokenPath()
-
+	// * check if the token exists
 	if _, errorFile := os.Stat(hostifyFilePath); errorFile != nil {
 		return false
 	}
 
 	return true
-
 }
 
 // ValidateToken token request
-func ValidateToken() {
+func ValidateToken() string {
 	client := &http.Client{
 		// * 1 minute time out
 		Timeout: time.Duration(60 * time.Second),
 	}
 
-	request, errorReq := http.NewRequest("GET", "https://api-hostify-service.herokuapp.com/api/validate", nil)
+	request, errorReq := http.NewRequest("POST", "https://api-hostify-service.herokuapp.com/api/validate", nil)
 
 	if errorReq != nil {
 		io.ErrorMessage("creating server request\n" + io.Trace)
 		log.Fatal(errorReq)
 	}
 
+	// * send user token
 	request.Header.Add("x-access-token", handlers.GetToken())
+
+	// * make request
 	resp, errorGet := client.Do(request)
 
 	if errorGet != nil {
@@ -59,9 +62,13 @@ func ValidateToken() {
 	json.Unmarshal(body, &bodyJSON)
 
 	if bodyJSON["error"] == true {
-		io.ErrorMessage("rejected request")
+		io.ErrorMessage(
+			"rejected request, The token entered is not valid or has expired, start session in hostify and add the token again\n" + io.Trace)
 		log.Fatal(bodyJSON["message"])
-	} else {
-		io.SuccessMessage("the token was verified successfully")
+		return "nil"
 	}
+
+	io.SuccessMessage("the token was verified successfully")
+	return fmt.Sprintf("%v", bodyJSON["username"])
+
 }

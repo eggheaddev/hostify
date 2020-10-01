@@ -2,41 +2,33 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"hostify/io"
 	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
 )
 
-type hostifyJSON struct {
-	name        string
-	description string
-	version     string
-	entry       string
-	repository  string
-	files       []interface{}
-}
-
 // ReadJSON ....
-func ReadJSON() {
-
-	file, err := ioutil.ReadFile(filepath.Join(Cwd(), "hostify.json"))
-
-	if err != nil {
-		fmt.Println(err)
-	}
+func ReadJSON() map[string]interface{} {
 
 	var hostify map[string]interface{}
 
-	json.Unmarshal(file, &hostify)
+	_, err := os.Stat(filepath.Join(Cwd(), "hostify.json"))
 
-	// var data hostifyJSON = hostifyJSON{
-	// 	name:  			hostify["name"],  			description: hostify["description"],
-	// 	entry: 			hostify["entry"],
-	// 	repository: hostify["repository"],	version: hostify["version"],
-	// }
+	if os.IsNotExist(err) {
+		io.ErrorMessage("the hostify.json file was not found")
+		os.Exit(1)
+	} else {
 
-	// files := make([]string, int(hostify["files"]))
+		file, err := ioutil.ReadFile(filepath.Join(Cwd(), "hostify.json"))
 
-	fmt.Println("ok")
-	fmt.Printf("%T ", hostify["files"])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		json.Unmarshal(file, &hostify)
+
+	}
+	return hostify
 }

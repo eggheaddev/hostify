@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"hostify/handlers"
+	colors "hostify/io"
 	"io"
 	"io/ioutil"
 	"log"
@@ -11,93 +13,111 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
-// SendPackage test
-func SendPackage() {
-	jsonMap, errorJSONMAP := json.Marshal(map[string]string{
-		"ServiceName": "hostify cli1",
-		"description": "hostify cli service1",
-		"ip":          "127.0.0.1:3000/cli1",
-	})
+func uploadFile(root string, path string, user string, done bool) []byte {
 
-	if errorJSONMAP != nil {
-		log.Fatal(errorJSONMAP)
+	file, errorOpen := os.Open(root)
+
+	if errorOpen != nil {
+		colors.ErrorMessage(
+			"an error occurred opening the file\n" + colors.Trace)
+		log.Fatal(errorOpen)
 	}
 
-	response, errorResp := http.Post("http://localhost:3000/upload",
-		"application/json", bytes.NewBuffer(jsonMap))
-
-	if errorResp != nil {
-		log.Fatal(errorResp)
-	}
-
-	defer response.Body.Close()
-
-	body, errorBody := ioutil.ReadAll(response.Body)
-
-	if errorBody != nil {
-		log.Fatal(errorBody)
-	}
-
-	fmt.Println("body str => ", string(body))
-
-	var bodyJSON map[string]interface{}
-
-	json.Unmarshal([]byte(body), &bodyJSON)
-
-	fmt.Println("json => ", bodyJSON)
-}
-
-// SendFiles test
-func SendFiles(url string, filename string, filetype string) []byte {
-
-	file, err := os.Open(filename)
-
-	if err != nil {
-		log.Fatal(err)
-	}
 	defer file.Close()
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile(filetype, filepath.Base(file.Name()))
+	part, errorWriter := writer.CreateFormFile("file", filepath.Base(file.Name()))
 
-	if err != nil {
-		log.Fatal(err)
+	if errorWriter != nil {
+		colors.ErrorMessage(
+			"There was an error creating the file submission form\n" + colors.Trace)
+		log.Fatal(errorWriter)
 	}
 
 	io.Copy(part, file)
-	writer.WriteField("hostify.json", `{
-		"name": "trex",
-		"description": "package manager for deno",
-		"version": "1.3.0",
-		"entry": "cli.ts",
-		"repository": "https://github.com/crewdevio/Trex",
-		"files": []
-	}`)
-	writer.Close()
-	request, err := http.NewRequest("POST", url, body)
 
-	if err != nil {
-		log.Fatal(err)
+	writer.Close()
+	request, errorReq := http.NewRequest(
+		"POST", "https://storage-hostify-service.herokuapp.com/api/upload", body)
+
+	if errorReq != nil {
+		colors.ErrorMessage(
+			"an error occurred creating the request\n" + colors.Trace)
+		log.Fatal(errorReq)
 	}
 
+	hostifyFields := handlers.ReadJSON()
+
+	var finish string = "null"
+
+	if done {
+		finish = "finish"
+	}
+
+	request.Header.Add("package-description", fmt.Sprintf("%v", hostifyFields["description"]))
+	request.Header.Add("package-repository", fmt.Sprintf("%v", hostifyFields["repository"]))
+	request.Header.Add("package-version", fmt.Sprintf("%v", hostifyFields["version"]))
+	request.Header.Add("package-name", fmt.Sprintf("%v", hostifyFields["name"]))
+	request.Header.Add("entry-file", fmt.Sprintf("%v", hostifyFields["entry"]))
+	request.Header.Add("file-path", strings.ReplaceAll(path, "\\", "/"))
 	request.Header.Add("Content-Type", writer.FormDataContentType())
-	client := &http.Client{}
+	request.Header.Add("upload-done", finish)
+	request.Header.Add("owner-name", user)
 
-	response, err := client.Do(request)
+	client := &http.Client{
+		// * 1 minute time out
+		Timeout: time.Duration(60 * time.Second),
+	}
+	response, errorClient := client.Do(request)
 
-	if err != nil {
-		log.Fatal(err)
+	if errorClient != nil {
+		colors.ErrorMessage(
+			"making the request to send the files\n" + colors.Trace)
+		log.Fatal(errorClient)
 	}
 	defer response.Body.Close()
 
-	content, err := ioutil.ReadAll(response.Body)
+	content, erroRead := ioutil.ReadAll(response.Body)
 
-	if err != nil {
-		log.Fatal(err)
+	var responseJSON map[string]interface{}
+
+	json.Unmarshal(content, &responseJSON)
+
+	if responseJSON["error"] == true {
+		colors.ErrorMessage(fmt.Sprintf("%v", responseJSON["message"]) + colors.Trace)
+		log.Fatal(responseJSON["message"])
+	}
+
+	if erroRead != nil {
+		colors.ErrorMessage(
+			"an error occurred reading the response from the server\n" + colors.Trace)
+		log.Fatal(erroRead)
 	}
 
 	return content
+}
+
+// SendFiles test
+func SendFiles(root string, user string, done bool) error {
+	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			time.Sleep(900 * time.Millisecond)
+			fmt.Printf(
+				"%v |- uploading:%v %v %v %v \n", colors.Green,
+				colors.Reset, colors.Yellow, path, colors.Reset)
+
+			defer uploadFile(filepath.Join(handlers.Cwd(), path), path, user, done)
+		}
+		return nil
+	})
 }

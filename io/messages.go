@@ -16,7 +16,7 @@ const Green = "\u001b[32m"
 // Yellow ANSI color
 const Yellow = "\u001b[33m"
 
-var bug = Yellow + "\nlooks like a bug? if you think this, please send us your report:" + Reset + Green + "\n==> https://github.com/eggheaddev/hostify-cli/issues\n" + Reset
+var bug = Yellow + "\nlooks like a bug? if you think this, please send us your report:" + Reset + Green + "\n==> https://github.com/eggheaddev/hostify-cli/issues/new\n" + Reset
 
 // Trace default message
 var Trace = bug + Red + "\n ==== Error trace ==== \n" + Reset

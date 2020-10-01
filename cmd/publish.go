@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"hostify/connection"
 	"hostify/handlers"
-	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -14,17 +14,24 @@ var publishCmd = &cobra.Command{
 	Short: "publish your great library",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		files := []string{"main.go",
-			"LICENSE", "go.sum", "go.mod", ".gitignore"}
 
-		fmt.Println("publish package...")
-		handlers.ReadJSON()
-		connection.SendPackage()
+		files := strings.Split(fmt.Sprintf("%v", handlers.ReadJSON()["files"]), " ")
+
+		for i := 0; i < len(files); i++ {
+			files[i] = strings.ReplaceAll(files[i], "]", "")
+			files[i] = strings.ReplaceAll(files[i], "[", "")
+		}
+
+		user := connection.ValidateToken()
+
+		fmt.Println("Publish package...")
+
 		for file := 0; file < len(files); file++ {
 
-			connection.SendFiles("http://localhost:3000/upload", filepath.Join(handlers.Cwd(), files[file]), "file")
+			connection.SendFiles(files[file], user, file == (len(files)-1))
 		}
 		fmt.Println("Done...")
+
 	},
 }
 

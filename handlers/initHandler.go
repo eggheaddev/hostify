@@ -47,7 +47,8 @@ func InitialPackage() {
 			io.SuccessMessage(done)
 			os.Exit(0)
 		} else {
-			fmt.Println(errorWrite)
+			io.ErrorMessage(
+				"an error occurred while saving the token\n" + io.Trace)
 			log.Fatal(errorCreate)
 		}
 	}
